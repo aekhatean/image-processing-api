@@ -7,7 +7,7 @@ routes.get('/', (req, res) => {
 });
 
 routes.get('/api', (req, res) => {
-  res.send(req.url);
+  res.send(req.query.filename);
 });
 
 export default routes;
