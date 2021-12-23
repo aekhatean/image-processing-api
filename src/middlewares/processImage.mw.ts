@@ -27,26 +27,36 @@ const thumbnailExists = (name: string): boolean => {
   }
   return false;
 };
-const createThumbnail = (
+
+/**
+ * Function processess an image to another size
+ * @param image original image name that will be processed
+ * @param width Desired width value from user's query
+ * @param height Desired height value
+ */
+const createThumbnail = async (
   image: string,
   width: string,
   height: string
-): void => {
+): Promise<void> => {
   const imagePath = `../../data/images/${image}.jpg`;
   const thumbnailPath = `../../data/thumbnails/${image}-${width}-${height}.jpg`;
-  const iWidth = parseInt(width);
-  const iHeight = parseInt(height);
+  const iWidth = parseInt(width),
+    iHeight = parseInt(height);
 
+  // Create thumbnail of desired size using sharp package
   sharp(imagePath)
     .resize(iWidth, iHeight, { fit: 'contain' })
-    .toFile(thumbnailPath);
+    .toFile(thumbnailPath)
+    .then((info) => console.log(info))
+    .catch((err) => console.log(err));
 };
 
 /**
  * Function creates a resized version (thumbnail) of an image
- * @param req
+ * @param req image data
  * @param res
- * @param next
+ * @param next Function to trigger the next middleware in the queue
  */
 const processImage = (
   req: express.Request,
@@ -54,9 +64,11 @@ const processImage = (
   next: express.NextFunction
 ): void => {
   const { imageName, height, width } = req.query;
+  // Check if original image name exists in images directory
   if (imageExists(imageName as unknown as string)) {
-    console.log('hellodd there');
+    // if the original image exists exists, check if a thumbnail of the same size was created before
     const thumbnailName = `${imageName}-${height}-${width}`;
+    // If there is no thumbnail of this size for that image create one
     if (!thumbnailExists(thumbnailName)) {
       createThumbnail(
         imageName as unknown as string,
