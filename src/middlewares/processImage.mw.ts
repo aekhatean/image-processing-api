@@ -61,17 +61,15 @@ const thumbnailDoesnotExist = async (name: string): Promise<boolean> => {
  */
 const createThumbnail = async (
   image: string,
-  width: string,
-  height: string
+  width: number,
+  height: number
 ): Promise<void> => {
   const imagePath = pathToImage(image);
   const thumbnailPath = pathToThumbnail(`${width}-${height}-${image}`);
-  const iWidth = parseInt(width),
-    iHeight = parseInt(height);
 
   // Create thumbnail of desired size using sharp package
   sharp(imagePath)
-    .resize(iWidth, iHeight, { fit: 'contain' })
+    .resize(width, height, { fit: 'contain' })
     .toFile(thumbnailPath);
 };
 
@@ -86,18 +84,24 @@ const processImage = async (
   res: express.Response,
   next: express.NextFunction
 ): Promise<void> => {
-  const { imageName, height, width } = req.query;
-  // Check if original image name exists in images directory
-  if (await imageExists(imageName as unknown as string)) {
-    // if the original image exists exists, check if a thumbnail of the same size was created before
-    const thumbnailName = `${width}-${height}-${imageName}`;
-    // If there is no thumbnail of this size for that image create one
-    if (await thumbnailDoesnotExist(thumbnailName)) {
-      createThumbnail(
-        imageName as unknown as string,
-        width as unknown as string,
-        height as unknown as string
-      );
+  if (Object.keys(req.query).length === 3 && req.query.constructor === Object) {
+    const { imageName, height, width } = req.query;
+    const nWidth = parseInt(width as unknown as string);
+    const nHeight = parseInt(height as unknown as string);
+
+    // Make sure user entered valid query names
+    if (imageName && height && width) {
+      // Check if original image name exists in images directory
+      if (await imageExists(imageName as unknown as string)) {
+        // if the original image exists exists, check if a thumbnail of the same size was created before
+        const thumbnailName = `${width}-${height}-${imageName}`;
+        // If there is no thumbnail of this size for that image create one
+        if (await thumbnailDoesnotExist(thumbnailName)) {
+          createThumbnail(imageName as unknown as string, nWidth, nHeight);
+        }
+      }
+    } else {
+      next();
     }
   }
   next();
