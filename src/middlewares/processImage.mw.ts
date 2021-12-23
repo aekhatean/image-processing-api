@@ -1,18 +1,41 @@
 import express from 'express';
-import fs from 'fs';
+import fs, { promises as fsPromises } from 'fs';
+import path from 'path';
 import sharp from 'sharp';
+
+/**
+ * Function to get original image path from data/images directory
+ * @param imageName image name with file extention
+ * @returns path to original image in data/images directory
+ */
+const pathToImage = (imageName: string) => {
+  return path.normalize(`${__dirname}../../../data/images/${imageName}`);
+};
+
+/**
+ * Function to get processed image (thumbnail) path from data/thumbnails directory
+ * @param thumbnailName thumbnail name saved for later use pn the format of width-height-imageName.extention
+ * @returns path to processed image in data/thumbnails directory
+ */
+const pathToThumbnail = (thumbnailName: string) => {
+  return path.normalize(
+    `${__dirname}../../../data/thumbnails/${thumbnailName}`
+  );
+};
 
 /**
  * Function checks if image exists in images directory
  * @param name original image name
  * @returns boolean
  */
-const imageExists = (name: string): boolean => {
-  const imagePath = `../../data/images/${name}.jpg`;
-  if (fs.existsSync(imagePath)) {
-    return true;
-  }
-  return false;
+const imageExists = async (name: string): Promise<boolean> => {
+  const imagePath = pathToImage(name);
+  let existanceStatus = true;
+  fsPromises.access(imagePath, fs.constants.F_OK).catch(() => {
+    existanceStatus = false;
+  });
+
+  return existanceStatus;
 };
 
 /**
@@ -20,12 +43,14 @@ const imageExists = (name: string): boolean => {
  * @param name thumbnail image name
  * @returns boolean
  */
-const thumbnailExists = (name: string): boolean => {
-  const thumbnailPath = `../../data/thumbnails/${name}.jpg`;
-  if (fs.existsSync(thumbnailPath)) {
-    return true;
-  }
-  return false;
+const thumbnailDoesnotExist = async (name: string): Promise<boolean> => {
+  const thumbnailPath = pathToThumbnail(name);
+  let existanceStatus = true;
+  fsPromises.access(thumbnailPath, fs.constants.F_OK).catch(() => {
+    existanceStatus = false;
+  });
+
+  return existanceStatus;
 };
 
 /**
@@ -39,17 +64,15 @@ const createThumbnail = async (
   width: string,
   height: string
 ): Promise<void> => {
-  const imagePath = `../../data/images/${image}.jpg`;
-  const thumbnailPath = `../../data/thumbnails/${image}-${width}-${height}.jpg`;
+  const imagePath = pathToImage(image);
+  const thumbnailPath = pathToThumbnail(`${width}-${height}-${image}`);
   const iWidth = parseInt(width),
     iHeight = parseInt(height);
 
   // Create thumbnail of desired size using sharp package
   sharp(imagePath)
     .resize(iWidth, iHeight, { fit: 'contain' })
-    .toFile(thumbnailPath)
-    .then((info) => console.log(info))
-    .catch((err) => console.log(err));
+    .toFile(thumbnailPath);
 };
 
 /**
@@ -58,18 +81,18 @@ const createThumbnail = async (
  * @param res
  * @param next Function to trigger the next middleware in the queue
  */
-const processImage = (
+const processImage = async (
   req: express.Request,
   res: express.Response,
   next: express.NextFunction
-): void => {
+): Promise<void> => {
   const { imageName, height, width } = req.query;
   // Check if original image name exists in images directory
-  if (imageExists(imageName as unknown as string)) {
+  if (await imageExists(imageName as unknown as string)) {
     // if the original image exists exists, check if a thumbnail of the same size was created before
-    const thumbnailName = `${imageName}-${height}-${width}`;
+    const thumbnailName = `${width}-${height}-${imageName}`;
     // If there is no thumbnail of this size for that image create one
-    if (!thumbnailExists(thumbnailName)) {
+    if (await thumbnailDoesnotExist(thumbnailName)) {
       createThumbnail(
         imageName as unknown as string,
         width as unknown as string,
