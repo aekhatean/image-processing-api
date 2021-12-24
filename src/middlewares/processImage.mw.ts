@@ -68,7 +68,7 @@ const createThumbnail = async (
   const thumbnailPath = pathToThumbnail(`${width}-${height}-${image}`);
 
   // Create thumbnail of desired size using sharp package
-  sharp(imagePath)
+  await sharp(imagePath)
     .resize(width, height, { fit: 'contain' })
     .toFile(thumbnailPath);
 };
@@ -86,22 +86,28 @@ const processImage = async (
 ): Promise<void> => {
   if (Object.keys(req.query).length === 3 && req.query.constructor === Object) {
     const { imageName, height, width } = req.query;
-    const nWidth = parseInt(width as unknown as string);
-    const nHeight = parseInt(height as unknown as string);
 
     // Make sure user entered valid query names
-    if (imageName && height && width) {
-      // Check if original image name exists in images directory
+    const nWidth = Number(width as unknown as string);
+    const nHeight = Number(height as unknown as string);
+
+    if (imageName && !isNaN(nHeight) && !isNaN(nWidth)) {
+      console.log(nHeight);
       if (await imageExists(imageName as unknown as string)) {
+        // Check if original image name exists in images directory
         // if the original image exists exists, check if a thumbnail of the same size was created before
         const thumbnailName = `${width}-${height}-${imageName}`;
         // If there is no thumbnail of this size for that image create one
         if (await thumbnailDoesnotExist(thumbnailName)) {
-          createThumbnail(imageName as unknown as string, nWidth, nHeight);
+          await createThumbnail(
+            imageName as unknown as string,
+            nWidth,
+            nHeight
+          );
         }
+      } else {
+        next();
       }
-    } else {
-      next();
     }
   }
   next();
