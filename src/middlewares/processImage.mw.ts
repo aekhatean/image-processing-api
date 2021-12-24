@@ -107,4 +107,11 @@ const processImage = async (
   next();
 };
 
-export default processImage;
+export {
+  pathToImage,
+  pathToThumbnail,
+  imageExists,
+  thumbnailDoesnotExist,
+  createThumbnail,
+  processImage
+};

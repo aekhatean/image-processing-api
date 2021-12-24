@@ -1,6 +1,6 @@
 import express from 'express';
 import path from 'path';
-import processImage from '../middlewares/processImage.mw';
+import { processImage } from '../middlewares/processImage.mw';
 
 const routes = express.Router();
 routes.use(processImage);
