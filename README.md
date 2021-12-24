@@ -49,33 +49,38 @@ Ways to use this API through terminal
 npm run build
 ```
 
-- To run this project for development:
+- To run this project for development
 
 ```
 npm run start
 ```
 
-    - To format the code using Prettier
-    ```
-    npm run prettier
-    ```
+- To format the code using Prettier
 
-    - To lint the code using eslint
-    ```
-    npm run lint
-    ```
+```
+npm run prettier
+```
 
-    - To test and build the code for production
-    ```
-    npm run build
-    ```
+- To lint the code using eslint
+
+```
+npm run lint
+```
+
+- To test and build the code for production
+
+```
+npm run build
+```
 
 ## Using the API
 
 To use this API for image resizing, enter this following at the end of your URL in your browser:
 
 ```
+
 api?imageName=$imagename&width=$desiredWidth&height=$desiredHeight
+
 ```
 
 You should replace the variables starting with "$", where:
@@ -103,3 +108,7 @@ Adham Khatean
 ## License
 
 This project is licensed under the [ISC] License
+
+```
+
+```
