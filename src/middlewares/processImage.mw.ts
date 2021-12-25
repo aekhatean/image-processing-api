@@ -1,7 +1,35 @@
 import express from 'express';
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
+import { ParsedQs } from 'qs';
 import sharp from 'sharp';
+
+/**
+ * Function Validates non of query parameters are empty, and width and height are numbers
+ * @param query query parameters from express get request to process image
+ * @returns Boolean
+ */
+
+const queryParametersValidated = (query: ParsedQs): boolean => {
+  if (Object.keys(query).length === 3 && query.constructor === Object) {
+    const { imageName, height, width } = query;
+    const sImageName = (imageName as unknown as string).trim();
+    const sWidth = (width as unknown as string).trim();
+    const sHeight = (height as unknown as string).trim();
+
+    // Make sure user entered valid query names and none of them is empty
+    if (sImageName !== '' && sHeight !== '' && sWidth !== '') {
+      // Create regex pattern to use in order to validate height and width only contain digits
+      const pattern = new RegExp(/^\d+$/, 'g');
+
+      // Validate height and width are only digits
+      if (pattern.test(sWidth) && pattern.test(sHeight)) {
+        return true;
+      }
+    }
+  }
+  return false;
+};
 
 /**
  * Function to get original image path from data/images directory
@@ -84,30 +112,20 @@ const processImage = async (
   res: express.Response,
   next: express.NextFunction
 ): Promise<void> => {
-  if (Object.keys(req.query).length === 3 && req.query.constructor === Object) {
+  if (await queryParametersValidated(req.query)) {
     const { imageName, height, width } = req.query;
-
-    // Make sure user entered valid query names
     const nWidth = Number(width as unknown as string);
     const nHeight = Number(height as unknown as string);
-
-    if (imageName && !isNaN(nHeight) && !isNaN(nWidth)) {
-      console.log(nHeight);
-      if (await imageExists(imageName as unknown as string)) {
-        // Check if original image name exists in images directory
-        // if the original image exists exists, check if a thumbnail of the same size was created before
-        const thumbnailName = `${width}-${height}-${imageName}`;
-        // If there is no thumbnail of this size for that image create one
-        if (await thumbnailDoesnotExist(thumbnailName)) {
-          await createThumbnail(
-            imageName as unknown as string,
-            nWidth,
-            nHeight
-          );
-        }
-      } else {
-        next();
+    if (await imageExists(imageName as unknown as string)) {
+      // Check if original image name exists in images directory
+      // if the original image exists exists, check if a thumbnail of the same size was created before
+      const thumbnailName = `${width}-${height}-${imageName}`;
+      // If there is no thumbnail of this size for that image create one
+      if (await thumbnailDoesnotExist(thumbnailName)) {
+        await createThumbnail(imageName as unknown as string, nWidth, nHeight);
       }
+    } else {
+      next();
     }
   }
   next();

@@ -14,6 +14,10 @@ routes.get(
   '/api',
   processImage,
   async (req: express.Request, res: express.Response): Promise<void> => {
+    // A message to be sent if user entered wrong queries or did not enter anything at
+    const noImageToProcessMessage =
+      'Enter the details of image that you want to resize, and if you did make sure you entered query pramaters correctly';
+
     // Only start the process of resizing an image if user added 3 queries to the url
     if (
       Object.keys(req.query).length === 3 &&
@@ -36,14 +40,12 @@ routes.get(
             res.sendFile(resPath);
           })
           .catch((): void => {
-            res.redirect(req.originalUrl);
+            res.send(noImageToProcessMessage);
           });
       }
     } else {
       // To ask user to enter image details if no query is created
-      res.send(
-        'Enter the details of image that you want to resize, and if you did make sure you entered query pramaters correctly'
-      );
+      res.send(noImageToProcessMessage);
     }
   }
 );
