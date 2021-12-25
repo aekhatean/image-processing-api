@@ -1,7 +1,6 @@
 import express from 'express';
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
-import { ParsedQs } from 'qs';
 import sharp from 'sharp';
 
 /**
@@ -10,7 +9,10 @@ import sharp from 'sharp';
  * @returns Boolean
  */
 
-const queryParametersValidated = (query: ParsedQs): boolean => {
+const queryParametersValidated = (req: express.Request): boolean => {
+  const query = req.query;
+
+  // Validate query only having 3 parameters
   if (Object.keys(query).length === 3 && query.constructor === Object) {
     const { imageName, height, width } = query;
     const sImageName = (imageName as unknown as string).trim();
@@ -112,7 +114,7 @@ const processImage = async (
   res: express.Response,
   next: express.NextFunction
 ): Promise<void> => {
-  if (await queryParametersValidated(req.query)) {
+  if (await queryParametersValidated(req)) {
     const { imageName, height, width } = req.query;
     const nWidth = Number(width as unknown as string);
     const nHeight = Number(height as unknown as string);
