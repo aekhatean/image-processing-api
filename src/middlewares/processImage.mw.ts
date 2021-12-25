@@ -21,11 +21,12 @@ const queryParametersValidated = (req: express.Request): boolean => {
 
     // Make sure user entered valid query names and none of them is empty
     if (sImageName !== '' && sHeight !== '' && sWidth !== '') {
-      // Create regex pattern to use in order to validate height and width only contain digits
-      const pattern = new RegExp(/^\d+$/, 'g');
+      // Create regex patterns to use in order to validate height and width only contain digits
+      const hpattern = new RegExp(/^\d+$/, 'g');
+      const wpattern = new RegExp(/^\d+$/, 'g');
 
       // Validate height and width are only digits
-      if (pattern.test(sWidth) && pattern.test(sHeight)) {
+      if (wpattern.test(sWidth) && hpattern.test(sHeight)) {
         return true;
       }
     }
@@ -114,7 +115,7 @@ const processImage = async (
   res: express.Response,
   next: express.NextFunction
 ): Promise<void> => {
-  if (await queryParametersValidated(req)) {
+  if (queryParametersValidated(req)) {
     const { imageName, height, width } = req.query;
     const nWidth = Number(width as unknown as string);
     const nHeight = Number(height as unknown as string);
@@ -126,8 +127,6 @@ const processImage = async (
       if (await thumbnailDoesnotExist(thumbnailName)) {
         await createThumbnail(imageName as unknown as string, nWidth, nHeight);
       }
-    } else {
-      next();
     }
   }
   next();
