@@ -20,13 +20,16 @@ const queryParametersValidated = (req: express.Request): boolean => {
     const sHeight = (height as unknown as string).trim();
 
     // Make sure user entered valid query names and none of them is empty
-    if (sImageName !== '' && sHeight !== '' && sWidth !== '') {
+    if (
+      sImageName.length !== 0 &&
+      sHeight.length !== 0 &&
+      sWidth.length !== 0
+    ) {
       // Create regex patterns to use in order to validate height and width only contain digits
-      const hpattern = new RegExp(/^\d+$/, 'g');
-      const wpattern = new RegExp(/^\d+$/, 'g');
+      const pattern = new RegExp(/^\d+$/);
 
       // Validate height and width are only digits
-      if (wpattern.test(sWidth) && hpattern.test(sHeight)) {
+      if (pattern.test(sWidth) && pattern.test(sHeight)) {
         return true;
       }
     }
@@ -39,7 +42,7 @@ const queryParametersValidated = (req: express.Request): boolean => {
  * @param imageName image name with file extention
  * @returns path to original image in data/images directory
  */
-const pathToImage = (imageName: string) => {
+const pathToImage = (imageName: string): string => {
   return path.normalize(`${__dirname}../../../data/images/${imageName}`);
 };
 
@@ -48,7 +51,7 @@ const pathToImage = (imageName: string) => {
  * @param thumbnailName thumbnail name saved for later use pn the format of width-height-imageName.extention
  * @returns path to processed image in data/thumbnails directory
  */
-const pathToThumbnail = (thumbnailName: string) => {
+const pathToThumbnail = (thumbnailName: string): string => {
   return path.normalize(
     `${__dirname}../../../data/thumbnails/${thumbnailName}`
   );
@@ -93,15 +96,21 @@ const thumbnailDoesnotExist = async (name: string): Promise<boolean> => {
 const createThumbnail = async (
   image: string,
   width: number,
-  height: number
+  height: number,
+  next: express.NextFunction
 ): Promise<void> => {
   const imagePath = pathToImage(image);
   const thumbnailPath = pathToThumbnail(`${width}-${height}-${image}`);
 
   // Create thumbnail of desired size using sharp package
-  await sharp(imagePath)
-    .resize(width, height, { fit: 'contain' })
-    .toFile(thumbnailPath);
+  try {
+    await sharp(imagePath)
+      .resize(width, height, { fit: 'contain' })
+      .toFile(thumbnailPath);
+  } catch (e) {
+    console.error(e);
+    next();
+  }
 };
 
 /**
@@ -125,7 +134,12 @@ const processImage = async (
       const thumbnailName = `${width}-${height}-${imageName}`;
       // If there is no thumbnail of this size for that image create one
       if (await thumbnailDoesnotExist(thumbnailName)) {
-        await createThumbnail(imageName as unknown as string, nWidth, nHeight);
+        await createThumbnail(
+          imageName as unknown as string,
+          nWidth,
+          nHeight,
+          next
+        );
       }
     }
   }
