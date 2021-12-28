@@ -4,10 +4,15 @@ import fs, { promises as fsPromises } from 'fs';
 import { processImage } from '../middlewares/processImage.mw';
 
 const routes = express.Router();
+const port = 3000;
+
 routes.use(processImage);
 
 routes.get('/', (req: express.Request, res: express.Response): void => {
-  res.redirect('./api');
+  res.send(
+    `<p>You can access image processing API from<a href="http://localhost:${port}/api">here</a></p>\n
+    <p>Or you can read how to use it from here<a href="https://github.com/aekhatean/image-processing-api/blob/main/README.md">here</a></p>`
+  );
 });
 
 routes.get(
@@ -23,29 +28,33 @@ routes.get(
       Object.keys(req.query).length === 3 &&
       req.query.constructor === Object
     ) {
-      const image = req.query.imageName;
-      const height = req.query.height;
-      const width = req.query.width;
+      const { imageName, height, width } = req.query;
+
+      const sImageName = (imageName as unknown as string).trim();
+      const sWidth = (width as unknown as string).trim();
+      const sHeight = (height as unknown as string).trim();
 
       // Make sure user entered valid query names
-      if (image && height && width) {
+      if (
+        sImageName.length !== 0 &&
+        sHeight.length !== 0 &&
+        sWidth.length !== 0
+      ) {
         const resPath = path.normalize(
-          `${__dirname}/../../data/thumbnails/${width}-${height}-${image}`
+          `${__dirname}/../../data/thumbnails/${width}-${height}-${imageName}`
         );
 
         // To handle response not finding on first attempt(Needs fixing: error object does not reconize error code)
-        fsPromises
-          .access(resPath, fs.constants.F_OK)
-          .then((): void => {
-            res.sendFile(resPath);
-          })
-          .catch((): void => {
-            res.send(noImageToProcessMessage);
-          });
+        try {
+          fsPromises.access(resPath, fs.constants.F_OK);
+          res.sendFile(resPath);
+        } catch {
+          res.send(noImageToProcessMessage);
+        }
+      } else {
+        // To ask user to enter image details if no query is created
+        res.send(noImageToProcessMessage);
       }
-    } else {
-      // To ask user to enter image details if no query is created
-      res.send(noImageToProcessMessage);
     }
   }
 );

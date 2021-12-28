@@ -4,7 +4,8 @@ import {
   pathToImage,
   pathToThumbnail,
   imageExists,
-  thumbnailDoesnotExist
+  thumbnailDoesnotExist,
+  createThumbnail
 } from '../../middlewares/processImage.mw';
 
 describe('Test Image Processing process steps', (): void => {
@@ -42,6 +43,11 @@ describe('Test Image Processing process steps', (): void => {
 
   it('Should ensure checking for a non-existant thumbnail in data/ to return true', async (done): Promise<void> => {
     expect(await thumbnailDoesnotExist('200-200-fjord.jpg')).toBeTrue();
+    done();
+  });
+
+  it('Should ensure sharp is working properly on recieving all parameters post validation', async (done): Promise<void> => {
+    expect(await createThumbnail('fjord.jpg', 200, 200)).toBeTrue();
     done();
   });
 });

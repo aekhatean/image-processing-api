@@ -88,17 +88,17 @@ const thumbnailDoesnotExist = async (name: string): Promise<boolean> => {
 };
 
 /**
- * Function processess an image to another size
+ * Function processess an image to another size, and returns true if image is resized successfuly or false if processing failed
  * @param image original image name that will be processed
  * @param width Desired width value from user's query
  * @param height Desired height value
+ * @returns boolean
  */
 const createThumbnail = async (
   image: string,
   width: number,
-  height: number,
-  next: express.NextFunction
-): Promise<void> => {
+  height: number
+): Promise<boolean> => {
   const imagePath = pathToImage(image);
   const thumbnailPath = pathToThumbnail(`${width}-${height}-${image}`);
 
@@ -107,9 +107,9 @@ const createThumbnail = async (
     await sharp(imagePath)
       .resize(width, height, { fit: 'contain' })
       .toFile(thumbnailPath);
-  } catch (e) {
-    console.error(e);
-    next();
+    return true;
+  } catch {
+    return false;
   }
 };
 
@@ -126,22 +126,19 @@ const processImage = async (
 ): Promise<void> => {
   if (queryParametersValidated(req)) {
     const { imageName, height, width } = req.query;
-    const nWidth = Number(width as unknown as string);
-    const nHeight = Number(height as unknown as string);
+    const nWidth = parseInt(width as unknown as string);
+    const nHeight = parseInt(height as unknown as string);
     if (await imageExists(imageName as unknown as string)) {
       // Check if original image name exists in images directory
       // if the original image exists exists, check if a thumbnail of the same size was created before
       const thumbnailName = `${width}-${height}-${imageName}`;
       // If there is no thumbnail of this size for that image create one
       if (await thumbnailDoesnotExist(thumbnailName)) {
-        await createThumbnail(
-          imageName as unknown as string,
-          nWidth,
-          nHeight,
-          next
-        );
+        await createThumbnail(imageName as unknown as string, nWidth, nHeight);
       }
     }
+  } else {
+    next();
   }
   next();
 };
