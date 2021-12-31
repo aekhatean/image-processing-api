@@ -12,9 +12,6 @@ routes.get('/', (req: express.Request, res: express.Response): void => {
   res.send(
     `You can access image processing API from <a href="http://localhost:${port}/api">here</a>, Or you can read how to use it from <a href="https://github.com/aekhatean/image-processing-api/blob/main/README.md">here</a>`
   );
-  // console.log(
-  //   `You can access image processing API from "http://localhost:${port}/api", Or you can read how to use it from "https://github.com/aekhatean/image-processing-api/blob/main/README.md"`
-  // );
 });
 
 routes.get(
