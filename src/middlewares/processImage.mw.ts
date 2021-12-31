@@ -1,7 +1,6 @@
 import express from 'express';
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
-import { nextTick } from 'process';
 import sharp from 'sharp';
 
 /**

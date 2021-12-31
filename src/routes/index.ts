@@ -1,6 +1,6 @@
 import express from 'express';
 import path from 'path';
-import fs, { promises as fsPromises } from 'fs';
+import fs from 'fs';
 import { processImage } from '../middlewares/processImage.mw';
 
 const routes = express.Router();
