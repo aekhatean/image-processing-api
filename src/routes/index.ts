@@ -8,10 +8,9 @@ const port = 3000;
 
 routes.use(processImage);
 
-routes.get('/', (req: express.Request, res: express.Response): void => {
-  res.send(
-    `<p>You can access image processing API from<a href="http://localhost:${port}/api">here</a></p>\n
-    <p>Or you can read how to use it from here<a href="https://github.com/aekhatean/image-processing-api/blob/main/README.md">here</a></p>`
+routes.get('/', (): void => {
+  console.log(
+    `You can access image processing API from "http://localhost:${port}/api", Or you can read how to use it from "https://github.com/aekhatean/image-processing-api/blob/main/README.md"`
   );
 });
 
@@ -51,10 +50,10 @@ routes.get(
         } catch {
           res.send(noImageToProcessMessage);
         }
-      } else {
-        // To ask user to enter image details if no query is created
-        res.send(noImageToProcessMessage);
       }
+    } else {
+      // To ask user to enter image details if no query is created
+      res.send(noImageToProcessMessage);
     }
   }
 );

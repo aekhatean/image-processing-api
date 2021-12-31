@@ -4,9 +4,9 @@ import app from '../index';
 const request = supertest(app);
 
 describe('Test Image Processing API routes', async (): Promise<void> => {
-  it('Should always respond by instructions for using the api', async (done) => {
+  it('Should not send any response, it is just created as a natural starting point', async (done) => {
     const response = await request.get('/');
-    expect(response.status).toBe(200);
+    expect(response.status).toBe(404);
     done();
   });
 
