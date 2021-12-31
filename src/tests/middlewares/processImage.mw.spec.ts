@@ -1,5 +1,5 @@
 import path from 'path';
-
+import express from 'express';
 import {
   pathToImage,
   pathToThumbnail,
@@ -24,12 +24,12 @@ describe('Test Image Processing process steps', (): void => {
   });
 
   it('Should ensure checking for existance in data to be async', (): void => {
-    expect(imageExists('fjord.jpg')).toBeInstanceOf(Promise);
+    expect(imageExists('fjord.jpg', next)).toBeInstanceOf(Promise);
     expect(thumbnailDoesnotExist('200-200-fjord.jpg')).toBeInstanceOf(Promise);
   });
 
   it('Should ensure checking for existance in data to return boolean evntually', async (done): Promise<void> => {
-    expect(await imageExists('fjord.jpg')).toBeInstanceOf(Boolean);
+    expect(await imageExists('fjord.jpg', next)).toBeInstanceOf(Boolean);
     expect(await thumbnailDoesnotExist('200-200-fjord.jpg')).toBeInstanceOf(
       Boolean
     );
@@ -37,7 +37,7 @@ describe('Test Image Processing process steps', (): void => {
   });
 
   it('Should ensure checking for an existant image in data/ leads to finding it', async (done): Promise<void> => {
-    expect(await imageExists('fjord.jpg')).toBeTrue();
+    expect(await imageExists('fjord.jpg', next)).toBeTrue();
     done();
   });
 
@@ -51,3 +51,6 @@ describe('Test Image Processing process steps', (): void => {
     done();
   });
 });
+function next(): express.NextFunction {
+  throw new Error('Function not implemented.');
+}

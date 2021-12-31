@@ -43,12 +43,15 @@ routes.get(
           `${__dirname}/../../data/thumbnails/${width}-${height}-${imageName}`
         );
 
-        // To handle response not finding on first attempt(Needs fixing: error object does not reconize error code)
+        // To handle response not finding on first attempt
         try {
-          fsPromises.access(resPath, fs.constants.F_OK);
-          res.sendFile(resPath);
-        } catch {
-          res.send(noImageToProcessMessage);
+          if (fs.existsSync(resPath)) {
+            res.sendFile(resPath);
+          }
+        } catch (err) {
+          if (err) {
+            res.send(noImageToProcessMessage);
+          }
         }
       }
     } else {

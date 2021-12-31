@@ -1,6 +1,7 @@
 import express from 'express';
 import fs, { promises as fsPromises } from 'fs';
 import path from 'path';
+import { nextTick } from 'process';
 import sharp from 'sharp';
 
 /**
@@ -62,12 +63,25 @@ const pathToThumbnail = (thumbnailName: string): string => {
  * @param name original image name
  * @returns boolean
  */
-const imageExists = async (name: string): Promise<boolean> => {
+const imageExists = async (
+  name: string,
+  next: express.NextFunction
+): Promise<boolean> => {
   const imagePath = pathToImage(name);
   let existanceStatus = true;
-  fsPromises.access(imagePath, fs.constants.F_OK).catch(() => {
-    existanceStatus = false;
-  });
+
+  try {
+    if (fs.existsSync(imagePath)) {
+      existanceStatus = true;
+    } else {
+      next();
+    }
+  } catch (err) {
+    if (err) {
+      existanceStatus = false;
+      next();
+    }
+  }
 
   return existanceStatus;
 };
@@ -128,7 +142,7 @@ const processImage = async (
     const { imageName, height, width } = req.query;
     const nWidth = parseInt(width as unknown as string);
     const nHeight = parseInt(height as unknown as string);
-    if (await imageExists(imageName as unknown as string)) {
+    if (await imageExists(imageName as unknown as string, next)) {
       // Check if original image name exists in images directory
       // if the original image exists exists, check if a thumbnail of the same size was created before
       const thumbnailName = `${width}-${height}-${imageName}`;
